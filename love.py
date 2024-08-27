@@ -1,43 +1,44 @@
-import curses
 import time
-import random
+import sys
+import os
 
-def draw_hearts(stdscr):
-    curses.curs_set(0)  # Hide the cursor
-    sh, sw = stdscr.getmaxyx()  # Get screen height and width
-    hearts = ['❤️', '💛', '💚', '💙', '💜']
+# Function to clear the terminal screen
+def clear_screen():
+    os.system('clear')  # For Unix-like systems, use 'cls' for Windows
+
+# Function to print heart emojis in rain
+def heart_rain(duration=600):
+    start_time = time.time()
+    while time.time() - start_time < duration:
+        clear_screen()
+        # Print hearts at random positions
+        for _ in range(20):  # Number of hearts
+            x = os.get_terminal_size().columns
+            y = os.get_terminal_size().lines
+            print('\033[{};{}H❤️'.format(int(y * random.random()), int(x * random.random())))
+        time.sleep(0.1)
+
+# Function to print zooming text
+def zoom_text(duration=600):
+    end_time = time.time() + duration
+    message = "Alone Stand Larka love with you"
+    while time.time() < end_time:
+        for i in range(1, 6):
+            clear_screen()
+            # Print the message with varying sizes
+            print("\033[1;37;40m" + "\n".join([" " * i + message for _ in range(10)]))
+            time.sleep(1)
+
+if __name__ == "__main__":
+    import random
+    # Run heart rain and zoom text concurrently
+    from threading import Thread
     
-    while True:
-        stdscr.clear()
-        for _ in range(1000):  # Number of hearts to display
-            y = random.randint(0, sh - 1)
-            x = random.randint(0, sw - 1)
-            stdscr.addstr(y, x, random.choice(hearts))
-        
-        stdscr.refresh()
-        time.sleep(0.1)  # Adjust the speed of the rain effect
-
-def zoom_out_text(stdscr):
-    curses.curs_set(0)  # Hide the cursor
-    sh, sw = stdscr.getmaxyx()  # Get screen height and width
-    text = "Alone Stand Larka love with you"
-    zoom = 1
-    max_zoom = min(sh, sw) // 2  # Maximum zoom level
+    heart_thread = Thread(target=heart_rain)
+    zoom_thread = Thread(target=zoom_text)
     
-    while zoom < max_zoom:
-        stdscr.clear()
-        y = sh // 2 - zoom
-        x = sw // 2 - len(text) * zoom // 2
-        for i in range(zoom):
-            stdscr.addstr(y + i, x, text, curses.A_BOLD)
-        stdscr.refresh()
-        zoom += 1
-        time.sleep(0.5)  # Adjust the speed of zooming out
-
-def main(stdscr):
-    # Draw hearts rain
-    draw_hearts(stdscr)
-    # After hearts rain, start zooming out text
-    zoom_out_text(stdscr)
-
-curses.wrapper(main)
+    heart_thread.start()
+    zoom_thread.start()
+    
+    heart_thread.join()
+    zoom_thread.join()
